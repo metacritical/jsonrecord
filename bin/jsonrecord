@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+tables_dir = File.dirname(__FILE__) + '../lib/tables/')
+
+puts tables_dir
