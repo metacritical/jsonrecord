@@ -1,8 +1,14 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'active_support'
 
-tables_dir = File.expand_path('../../lib/tables/',__FILE__)
-$LOAD_PATH << tables_dir
+tables_dir = File.expand_path('../../lib/tables',__FILE__)
 
-puts tables_dir
+include ActiveSupport::Inflector
+
+if ARGV[0] == 'generate' and ARGV[1] == 'model'
+  model_name = Inflections.pluralize(ARGV[2])
+  FileUtils.touch "#{tables_dir}/#{model_name}.json"
+  puts "JSONRecord table created : #{tables_dir}/#{model_name}.json"
+end
