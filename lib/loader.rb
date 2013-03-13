@@ -3,7 +3,7 @@
 require 'version'
 require 'yajl/json_gem'
 require 'active_model'
-require 'active_support'
+require 'active_support/inflector'
 require 'errors'
 require 'json_hash'
 require 'json_schema'

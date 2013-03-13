@@ -2,15 +2,16 @@
 
 require 'fileutils'
 require 'optparse'
-require 'active_support'
+require 'active_support/inflector'
 
 tables_dir = File.expand_path('../../lib/tables',__FILE__)
 
 include ActiveSupport::Inflector
 
 if ARGV[0] == 'generate' and ARGV[1] == 'model'
-  model_name = Inflections.pluralize(ARGV[2])
+  model_name = ARGV[2].to_s.pluralize
   FileUtils.touch "#{tables_dir}/#{model_name}.json"
+
   #Append an empty Array into the file.
   File.open("#{tables_dir}/#{model_name}.json", "w+") do |file|
     file.write("[]")
