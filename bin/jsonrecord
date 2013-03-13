@@ -6,8 +6,6 @@ require 'active_support/inflector'
 
 tables_dir = File.expand_path('../../lib/tables',__FILE__)
 
-include ActiveSupport::Inflector
-
 if ARGV[0] == 'generate' and ARGV[1] == 'model'
   model_name = ARGV[2].to_s.pluralize
   FileUtils.touch "#{tables_dir}/#{model_name}.json"
