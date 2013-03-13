@@ -9,7 +9,7 @@ Inventual Roadmap is to make it independent of rails.
 
 Add this line to your application's Gemfile:
 
-    gem 'json_record'
+    gem 'JSONRecord'
 
 And then execute:
 
@@ -17,7 +17,7 @@ And then execute:
 
 Or install it yourself as:
 
-$ gem install json_record
+$ gem install JSONRecord
 
 ## Usage
 
