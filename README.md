@@ -25,9 +25,7 @@ Or install it yourself as:
 
 		In order to generate new models an executable named jsonrecord is included: 
 
-```applescript
-$ jsonrecord generate model apple #(make sure your model name is singular)
-```
+  `$ jsonrecord generate model apple #(make sure your model name is singular)`
 
 		then in model/apple.rb
 
