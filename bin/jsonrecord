@@ -11,5 +11,10 @@ include ActiveSupport::Inflector
 if ARGV[0] == 'generate' and ARGV[1] == 'model'
   model_name = Inflections.pluralize(ARGV[2])
   FileUtils.touch "#{tables_dir}/#{model_name}.json"
+  #Append an empty Array into the file.
+  File.open("#{tables_dir}/#{model_name}.json", "w+") do |file|
+    file.write("[]")
+  end
+  
   puts "JSONRecord table created : #{tables_dir}/#{model_name}.json"
 end
