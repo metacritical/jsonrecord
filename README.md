@@ -24,7 +24,8 @@ Or install it yourself as:
 		and inherit from JSONRecord::Base it gives few mechanisms to search and save data in json files.
 
 		In order to generate new models an executable named jsonrecord is included: 
-		```bash	
+
+		```shell
 		$ jsonrecord generate model apple #(make sure your model name is singular)
 		```
 
