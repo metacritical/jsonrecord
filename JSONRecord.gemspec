@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'JSONRecord/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "JSONRecord"
+  gem.name          = "json_record"
   gem.version       = JSONRecord::VERSION
   gem.authors       = ["Pankaj Doharey"]
   gem.email         = ["pankajdoharey@gmail.com"]
