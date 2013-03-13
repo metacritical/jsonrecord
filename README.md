@@ -31,14 +31,10 @@ TODO: It is very easy to use jsondb as a document store in rails, create a model
 			then in model/apple.rb
 
 ```ruby
-
 			class Apple < JSONRecord::Base
-									
 			  def index
 		 	  end
-			
 			end
-			
 ```
 			
 ##Methods include :
