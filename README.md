@@ -45,7 +45,9 @@ TODO: It is very easy to use jsondb as a document store in rails, create a model
 
 ```ruby
 
-find(id) , find_by_column_name("column_value"), model_instance.update_attributes(:name => "pankaj" , :age => "29")
+find(id) 
+find_by_column_name("column_value")
+model_instance.update_attributes(:name => "pankaj" , :age => "29")
 
 ```
 
