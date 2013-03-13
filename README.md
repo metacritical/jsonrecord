@@ -23,6 +23,21 @@ $ gem install JSONRecord
 
 TODO: It is very easy to use jsondb as a document store in rails, create a model in rails/model and inherit from JSONRecord::Base
 			it gives few mechanisms to search and save data in json files.
+
+			In order to generate new models a binary file is included: 
+			
+			`jsonrecord generate model apple` (make sure your model name is singular)
+
+			then in model/apple.rb
+
+			class Apple < JSONRecord::Base
+									
+			  def index
+		 	  end
+			
+			end
+			
+
 			
 ##Methods include :
 
