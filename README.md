@@ -30,6 +30,8 @@ TODO: It is very easy to use jsondb as a document store in rails, create a model
 
 			then in model/apple.rb
 
+```ruby
+
 			class Apple < JSONRecord::Base
 									
 			  def index
@@ -37,28 +39,36 @@ TODO: It is very easy to use jsondb as a document store in rails, create a model
 			
 			end
 			
-
+```
 			
 ##Methods include :
 
+```ruby
+
 find(id) , find_by_column_name("column_value"), model_instance.update_attributes(:name => "pankaj" , :age => "29")
+
+```
 
 also ,
 
+```ruby
 Model.new({:name=> "pankaj" , :age => "29"}).save
-
+```
 
 In your rails model: In order to define new attributes use `column` method
 i.e  column :column_name , datetype
 
 
-example => column :name
+example => `column :name`
 
 by default if the second parameter is not defined it is taken as a string other wise datatypes can be defined as follows
 
+
+```ruby
 column :name, String
 column :age, Number
 column :marks, Array
+```
 
 Currently JSONRecord supports three datatypes String , Number , Array , More are coming ... As soon as code is modified to use
 messagepack or BSON.
