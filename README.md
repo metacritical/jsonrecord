@@ -40,9 +40,10 @@ Or install it yourself as:
 
 ```ruby
 
-find(id) 
-find_by_column_name("column_value")
-model_instance.update_attributes(:name => "pankaj" , :age => "29")
+Model.find(id) 
+Model.find_by_column_name("column_value")
+Model.find(id).update_attributes(:name => "pankaj" , :age => "29")
+Model.find(id).destroy()
 
 ```
 
