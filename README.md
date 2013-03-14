@@ -52,7 +52,7 @@ Model.new({:name=> "pankaj" , :age => "29"}).save
 ```
 
 In your rails model: In order to define new attributes use `column` method
-i.e  column :column_name , datetype
+i.e  column :column_name , datatype
 
 
 example => `column :name`
