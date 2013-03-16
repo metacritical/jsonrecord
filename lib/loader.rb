@@ -1,6 +1,7 @@
 ["../JSONRecord/"].each{ |dir| $LOAD_PATH << File.expand_path(dir,__FILE__) }
 
 require 'version'
+require 'fileutils'
 require 'yajl/json_gem'
 require 'active_model'
 require 'active_support/inflector'

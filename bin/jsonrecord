@@ -4,7 +4,8 @@ require 'fileutils'
 require 'optparse'
 require 'active_support/inflector'
 
-tables_dir = File.expand_path('../../lib/tables',__FILE__)
+gempath = Gem::Specification.find_by_name('JSONRecord').gem_dir
+tables_dir = File.expand_path("#{gempath}/lib/tables",__FILE__)
 
 if ARGV[0] == 'generate' and ARGV[1] == 'model'
   model_name = ARGV[2].to_s.pluralize

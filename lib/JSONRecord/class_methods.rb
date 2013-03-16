@@ -57,7 +57,8 @@ module JSONRecord
   end
   
   private
-  Dir.glob File.expand_path("../../tables/**/*.json", __FILE__) do |file|
+  gempath = Gem::Specification.find_by_name('JSONRecord').gem_dir
+  Dir.glob File.expand_path("#{gempath}/lib/tables/**/*.json", __FILE__) do |file|
     JSON_TABLES[File.basename(file)] = file
   end
 

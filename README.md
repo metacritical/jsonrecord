@@ -1,6 +1,6 @@
 # JSONRecord
 
-JSONRecord is a minimal document storage for rails, with an active record style query interface.
+JSONRecord is a minimal document storage for ruby, with an active record style query interface.
 It eventually aims to be as powerfull of other document stores like couchdb ... this is just a beginning.
 Inventual Roadmap is to make it independent of rails.
 
