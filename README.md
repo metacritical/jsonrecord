@@ -1,3 +1,5 @@
+[![JSONRECORD](https://raw.github.com/pankajdoharey/jsonrecord/master/misc/icon_jsonrecord.JPG)]
+
 # JSONRecord
 
 JSONRecord is a minimal document storage for ruby, with an active record style query interface.
