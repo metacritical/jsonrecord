@@ -1,4 +1,4 @@
-[![JSONRECORD](https://raw.github.com/pankajdoharey/jsonrecord/master/misc/icon_jsonrecord.JPG)]
+![JSONRECORD](https://raw.github.com/pankajdoharey/jsonrecord/master/misc/icon_jsonrecord.JPG)
 
 # JSONRecord
 
