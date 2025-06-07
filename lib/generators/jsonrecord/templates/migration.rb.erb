@@ -1,0 +1,40 @@
+class <%= migration_class_name %> < ActiveRecord::Migration[7.0]
+  def change
+<% if migration_name.match?(/create_(\w+)/i) -%>
+    create_table :<%= table_name %> do |t|
+<% regular_attributes.each do |attr| -%>
+      t.<%= attr[:type] %> :<%= attr[:name] %>
+<% end -%>
+<% vector_attributes.each do |attr| -%>
+      t.json :<%= attr[:name] %>  # Vector field: <%= attr[:dimensions] %> dimensions
+<% end -%>
+      
+      t.timestamps
+    end
+    
+<% vector_attributes.each do |attr| -%>
+    # Add vector field metadata for JsonRecord
+    add_vector_field :<%= table_name %>, :<%= attr[:name] %>, dimensions: <%= attr[:dimensions] %>
+<% end -%>
+<% elsif migration_name.match?(/add_(\w+)_to_(\w+)/i) -%>
+<% regular_attributes.each do |attr| -%>
+    add_column :<%= table_name %>, :<%= attr[:name] %>, :<%= attr[:type] %>
+<% end -%>
+<% vector_attributes.each do |attr| -%>
+    add_column :<%= table_name %>, :<%= attr[:name] %>, :json  # Vector field: <%= attr[:dimensions] %> dimensions
+    add_vector_field :<%= table_name %>, :<%= attr[:name] %>, dimensions: <%= attr[:dimensions] %>
+<% end -%>
+<% else -%>
+    # Custom migration - implement your changes here
+<% end -%>
+  end
+  
+  private
+  
+  def add_vector_field(table_name, field_name, dimensions:)
+    # Register vector field with JsonRecord adapter
+    if connection.respond_to?(:add_vector_field)
+      connection.add_vector_field(table_name, field_name, dimensions)
+    end
+  end
+end
