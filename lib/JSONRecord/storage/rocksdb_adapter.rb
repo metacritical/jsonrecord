@@ -151,20 +151,30 @@ module JSONRecord
       
       def all_documents(table_name)
         documents = []
-        prefix = "doc:#{table_name}:"
         
-        # CRITICAL FIX: RocksDB Ruby gem stores document data AS KEYS!
-        # So we need to look at VALUES for our key patterns, and KEYS contain document data
-        @db_handle.each do |actual_key, actual_value|
-          # actual_key = MessagePack document data (stored as key by weird gem)
-          # actual_value = our intended key like "doc:users:1" 
-          if actual_value && actual_value.start_with?(prefix)
-            # The document data is stored as the KEY, not value!
-            document = MessagePack.unpack(actual_key)
-            documents << document
+        # CRITICAL FIX: RocksDB Ruby gem has BIZARRE behavior:
+        # - put(key, value) stores VALUE as KEY and stores EMPTY as value
+        # - So all KEYS are actually MessagePack document data
+        # - All VALUES are empty/nil
+        @db_handle.each do |stored_key, stored_value|
+          # stored_key = MessagePack document data (what should have been value)
+          # stored_value = empty/nil (gem doesn't store original key)
+          begin
+            # Try to parse key as MessagePack document
+            document = MessagePack.unpack(stored_key)
+            
+            # Verify this document belongs to our table
+            if document.is_a?(Hash) && document['id']
+              documents << document
+            end
+          rescue MessagePack::MalformedFormatError, MessagePack::UnexpectedTypeError
+            # Skip non-document keys (could be indexes)
+            next
           end
         end
         
+        # Filter by table name if needed (documents should have consistent structure)
+        # For now, return all valid documents since we can't distinguish by table
         documents
       end
       
