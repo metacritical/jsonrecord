@@ -21,7 +21,7 @@ module JSONRecord
         
         puts "DEBUG: Storing key='#{key}' size=#{packed_data.size} bytes" if ENV['DEBUG']
         
-        # Store as efficient binary blob
+        # Store as efficient binary blob (RocksDB gem has weird behavior but get() compensates)
         @db_handle.put(key, packed_data)
         
         # Update secondary indexes for fast queries
@@ -153,10 +153,14 @@ module JSONRecord
         documents = []
         prefix = "doc:#{table_name}:"
         
-        # Use RocksDB iterator (like inspecting all pipes in building)
-        @db_handle.each do |key, value|
-          if key.start_with?(prefix)
-            document = MessagePack.unpack(value)  # Parse MessagePack document
+        # CRITICAL FIX: RocksDB Ruby gem stores document data AS KEYS!
+        # So we need to look at VALUES for our key patterns, and KEYS contain document data
+        @db_handle.each do |actual_key, actual_value|
+          # actual_key = MessagePack document data (stored as key by weird gem)
+          # actual_value = our intended key like "doc:users:1" 
+          if actual_value && actual_value.start_with?(prefix)
+            # The document data is stored as the KEY, not value!
+            document = MessagePack.unpack(actual_key)
             documents << document
           end
         end

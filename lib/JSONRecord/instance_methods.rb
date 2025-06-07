@@ -215,7 +215,7 @@ module JSONRecord
     
     def save_vectors
       self.class.vector_fields.each do |field_name, config|
-        vector = send("#{field_name}_vector")
+        vector = send(field_name)  # Use correct field name without _vector suffix
         next unless vector
         
         collection_name = "#{self.class.table_name}_#{field_name}"
@@ -232,7 +232,7 @@ module JSONRecord
       return unless @vector_fields_changed
       
       @vector_fields_changed.each do |field_name|
-        vector = send("#{field_name}_vector")
+        vector = send(field_name)  # Use correct field name
         collection_name = "#{self.class.table_name}_#{field_name}"
         
         if vector

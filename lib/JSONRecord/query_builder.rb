@@ -117,7 +117,7 @@ module JSONRecord
     end
     
     def document_only_query?
-      @document_conditions.any? && @vector_conditions.empty?
+      @vector_conditions.empty?  # If no vector conditions, it's a document query
     end
     
     def execute_document_only_query

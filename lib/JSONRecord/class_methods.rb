@@ -154,15 +154,15 @@ module JSONRecord
     # Update global configuration
     JSONRecord.configuration.vector_dimensions["#{table_name}_#{field_name}"] = dimensions
     
-    # Define accessor methods
-    define_method("#{field_name}_vector=") do |vector|
-      instance_variable_set("@#{field_name}_vector", vector)
+    # Define accessor methods with correct names (not _vector suffix)
+    define_method("#{field_name}=") do |vector|
+      instance_variable_set("@#{field_name}", vector)
       @vector_fields_changed ||= []
       @vector_fields_changed << field_name
     end
     
-    define_method("#{field_name}_vector") do
-      instance_variable_get("@#{field_name}_vector")
+    define_method("#{field_name}") do
+      instance_variable_get("@#{field_name}")
     end
   end
   
