@@ -19,10 +19,9 @@ Gem::Specification.new do |gem|
   # Modern dependencies for JSONRecord v2.0 - RocksDB required
   gem.add_dependency "activesupport", ">= 6.0"
   gem.add_dependency "activemodel", ">= 6.0"
+  gem.add_dependency "activerecord", ">= 6.0"  # For Rails adapter integration
   gem.add_dependency "rocksdb-ruby", "~> 1.0"  # Hard requirement
   gem.add_dependency "msgpack", "~> 1.0"
   gem.add_dependency "matrix"  # For vector operations
-  
-  # Note: Vector similarity engines like annoy-rb can be added optionally
-  # Users can add to their Gemfile: gem 'annoy-rb', require: false
+  gem.add_dependency "annoy-rb", "~> 0.7"  # Spotify's Annoy for better vector performance
 end

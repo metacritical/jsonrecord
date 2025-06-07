@@ -30,3 +30,13 @@ require 'instance_methods'
 require 'active_model_inclusions'
 require 'relation'
 require 'meth_missing'
+
+# ActiveRecord integration (Rails compatibility)
+begin
+  require 'active_record'
+  require File.join(File.dirname(__FILE__), 'active_record', 'connection_adapters', 'jsonrecord_adapter')
+  require File.join(File.dirname(__FILE__), 'active_record', 'jsonrecord_extensions')
+  puts "🔧 ActiveRecord adapter loaded - JsonRecord ready for Rails integration!"
+rescue LoadError => e
+  puts "🔧 ActiveRecord not found - using standalone JsonRecord mode"
+end

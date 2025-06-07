@@ -121,6 +121,106 @@ module JSONRecord
         estimate_num_keys.to_i
       end
       
+      # ActiveRecord adapter support (Rails integration plumbing)
+      def connected?
+        !@db_handle.nil?
+      end
+      
+      def list_tables
+        # Extract unique table names from documents
+        tables = Set.new
+        
+        @db_handle.each do |stored_key, stored_value|
+          begin
+            document = MessagePack.unpack(stored_key)
+            if document.is_a?(Hash) && document['_table']
+              tables << document['_table']
+            end
+          rescue MessagePack::MalformedFormatError, MessagePack::UnexpectedTypeError
+            next
+          end
+        end
+        
+        tables.to_a
+      end
+      
+      def table_exists?(table_name)
+        list_tables.include?(table_name.to_s)
+      end
+      
+      def create_table(table_name, options = {})
+        # JsonRecord doesn't need explicit table creation
+        # Just ensure table metadata exists
+        set_metadata(table_name, 'created_at', Time.now.iso8601)
+        set_metadata(table_name, 'options', options)
+      end
+      
+      def drop_table(table_name)
+        # Delete all documents for this table
+        all_documents(table_name).each do |doc|
+          delete_document(table_name, doc['id'])
+        end
+        
+        # Clean up table metadata
+        delete_metadata(table_name)
+      end
+      
+      def add_column(table_name, column_name, type, options = {})
+        # JsonRecord is schemaless, but store column info for ActiveRecord compatibility
+        schema = table_schema(table_name) || []
+        
+        column_def = {
+          name: column_name.to_s,
+          type: type.to_s,
+          options: options,
+          sql_type_metadata: build_sql_type_metadata(type, options),
+          null: options[:null] != false,
+          default: options[:default],
+          collation: options[:collation]
+        }
+        
+        schema << column_def
+        set_metadata(table_name, 'schema', schema)
+      end
+      
+      def remove_column(table_name, column_name)
+        schema = table_schema(table_name) || []
+        schema.reject! { |col| col[:name] == column_name.to_s }
+        set_metadata(table_name, 'schema', schema)
+      end
+      
+      def table_schema(table_name)
+        get_metadata(table_name, 'schema')
+      end
+      
+      def next_id(table_name)
+        # Simple auto-increment using metadata
+        current_id = get_metadata(table_name, 'next_id') || 1
+        set_metadata(table_name, 'next_id', current_id + 1)
+        current_id
+      end
+      
+      def get_metadata(table_name, key)
+        metadata_key = "meta:#{table_name}:#{key}"
+        packed_data = @db_handle.get(metadata_key)
+        return nil unless packed_data
+        MessagePack.unpack(packed_data)
+      end
+      
+      def set_metadata(table_name, key, value)
+        metadata_key = "meta:#{table_name}:#{key}"
+        @db_handle.put(metadata_key, MessagePack.pack(value))
+      end
+      
+      def delete_metadata(table_name)
+        # Delete all metadata for table
+        @db_handle.each do |key, value|
+          if key.start_with?("meta:#{table_name}:")
+            @db_handle.delete(key)
+          end
+        end
+      end
+      
       private
       
       def ensure_database_directory
@@ -281,6 +381,32 @@ module JSONRecord
         when :lt  then actual < expected
         when :includes then actual.include?(expected) if actual.respond_to?(:include?)
         else false
+        end
+      end
+      
+      def build_sql_type_metadata(type, options)
+        # Create SQL type metadata for ActiveRecord compatibility
+        case type.to_sym
+        when :string
+          { type: :string, limit: options[:limit] || 255 }
+        when :text
+          { type: :text }
+        when :integer
+          { type: :integer, limit: options[:limit] }
+        when :float
+          { type: :float }
+        when :decimal
+          { type: :decimal, precision: options[:precision], scale: options[:scale] }
+        when :boolean
+          { type: :boolean }
+        when :date
+          { type: :date }
+        when :datetime, :timestamp
+          { type: :datetime }
+        when :json
+          { type: :json }
+        else
+          { type: :string }
         end
       end
     end

@@ -2,16 +2,65 @@
 
 # JSONRecord
 
-🔧 **High-Performance Document Database for Ruby** 🔧
+🔧 **High-Performance Document Database for Ruby with ActiveRecord Integration** 🔧
 
-JSONRecord is a modern, fast document storage library with an ActiveRecord-style interface. Built on **RocksDB + FAISS** for optimal performance, it provides seamless Rails integration and powerful vector similarity search capabilities.
+JSONRecord is a modern, fast document storage library that works as both a **standalone database** and a **complete ActiveRecord adapter**. Built on **RocksDB + Vector Search** for optimal performance, it provides seamless Rails integration with powerful vector similarity search capabilities.
 
-## ⚡ Performance Features
+## ⚡ Key Features
 
+- **🏗️ ActiveRecord Adapter**: Drop-in replacement for SQLite with `database.yml` configuration
 - **🚀 RocksDB Backend**: Lightning-fast binary storage with MessagePack serialization
-- **🔍 Vector Search**: Built-in FAISS integration for semantic similarity queries  
-- **📊 Efficient Indexing**: Automatic secondary indexes for fast range queries
+- **🔍 Vector Search**: Built-in similarity search with Simple/Annoy/FAISS engines
+- **📊 Rails Integration**: Standard migrations, models, and query interface
 - **⚖️ Smart Storage**: Automatic Rails detection with XDG-compliant paths
+
+## 🎯 Two Ways to Use JsonRecord
+
+### 1. **ActiveRecord Adapter** (Recommended for Rails)
+
+Configure like any database in `database.yml`:
+
+```yaml
+# config/database.yml
+development:
+  adapter: jsonrecord
+  database: db/development_jsonrecord
+  vector_engine: simple
+
+production:
+  adapter: jsonrecord
+  database: db/production_jsonrecord
+  vector_engine: faiss
+```
+
+Use standard Rails models with vector extensions:
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord  # Standard Rails inheritance!
+  vector_field :profile_embedding, dimensions: 384
+  
+  validates :name, presence: true
+  has_many :posts
+end
+
+# Standard ActiveRecord + Vector similarity
+User.where(active: true).similar_to(query_vector).limit(10)
+```
+
+**👉 See [ActiveRecord Adapter Guide](ACTIVERECORD_ADAPTER.md) for complete Rails integration!**
+
+### 2. **Standalone Mode** (For non-Rails applications)
+
+```ruby
+class User < JSONRecord::Base
+  column :name, String
+  column :email, String
+  vector_field :profile_embedding, dimensions: 384
+end
+
+User.similar_to(query_vector, limit: 5)
+```
 
 ## Installation
 

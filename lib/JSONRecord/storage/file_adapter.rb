@@ -117,7 +117,7 @@ module JSONRecord
       private
       
       def default_data_dir
-        if defined?(Rails)
+        if defined?(Rails) && Rails.respond_to?(:root) && Rails.root
           Rails.root.join('db', 'jsonrecord_data')
         else
           File.join(Dir.pwd, 'data', 'jsonrecord')

@@ -72,5 +72,9 @@ module JSONRecord
     def vector_engine
       configuration.vector_engine
     end
+    
+    def vector_engine=(engine)
+      configuration.vector_engine = engine
+    end
   end
 end

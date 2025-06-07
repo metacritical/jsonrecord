@@ -26,9 +26,11 @@ module JSONRecord
     
     # Vector similarity search (FAISS/Vector queries)
     def similar_to(vector, options = {})
+      field = options[:field] || auto_detect_vector_field
+      
       @vector_conditions << {
         vector: vector,
-        field: options[:field] || :default,
+        field: field,
         threshold: options[:threshold] || 0.0,
         limit: options[:limit] || 50,  # Pre-filter before document filtering
         algorithm: options[:algorithm] || :cosine
@@ -111,6 +113,22 @@ module JSONRecord
     end
     
     private
+    
+    # Auto-detect vector field for UX improvement (German convenience engineering)
+    def auto_detect_vector_field
+      vector_fields = @model_class.vector_fields
+      
+      if vector_fields.empty?
+        raise ArgumentError, "No vector fields defined for #{@model_class}. Use vector_field :field_name, dimensions: N in your model."
+      elsif vector_fields.size == 1
+        # Automatically use the only vector field
+        vector_fields.keys.first
+      else
+        # Multiple fields - user must specify
+        field_names = vector_fields.keys.map(&:inspect).join(', ')
+        raise ArgumentError, "Multiple vector fields found: #{field_names}. Please specify field: parameter like User.similar_to(vector, field: :profile_embedding)"
+      end
+    end
     
     def vector_only_query?
       @vector_conditions.any? && @document_conditions.empty?
