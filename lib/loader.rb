@@ -2,9 +2,25 @@
 
 require 'version'
 require 'fileutils'
-require 'yajl/json_gem'
+require 'json'  # Use standard JSON instead of yajl
 require 'active_model'
 require 'active_support/inflector'
+
+# New RocksDB + Vector architecture (with fallback)
+require 'configuration'
+
+# Storage adapters - load what's available
+begin
+  require 'storage/rocksdb_adapter'
+rescue LoadError => e
+  puts "🔧 RocksDB adapter not available: #{e.message}"
+end
+
+require 'storage/file_adapter'  # Always load file fallback
+require 'storage/vector_adapter'
+require 'query_builder'
+
+# Legacy compatibility modules (updated for new architecture)
 require 'errors'
 require 'json_hash'
 require 'json_schema'

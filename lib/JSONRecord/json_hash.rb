@@ -5,5 +5,14 @@ module JSONRecord
         self[name.to_s]
       end
     end
+    
+    # Explicit id accessor for reliability
+    def id
+      self["id"]
+    end
+    
+    def id=(value)
+      self["id"] = value
+    end
   end
 end

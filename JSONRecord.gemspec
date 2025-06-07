@@ -16,7 +16,13 @@ Gem::Specification.new do |gem|
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
-  gem.add_dependency "activesupport", "~> 3.2.8"
-  gem.add_dependency "activemodel", "~> 3.2.8"
-  gem.add_dependency "yajl-ruby", "~> 1.1.0"
+  # Modern dependencies for JSONRecord v2.0 - RocksDB required
+  gem.add_dependency "activesupport", ">= 6.0"
+  gem.add_dependency "activemodel", ">= 6.0"
+  gem.add_dependency "rocksdb-ruby", "~> 1.0"  # Hard requirement
+  gem.add_dependency "msgpack", "~> 1.0"
+  gem.add_dependency "matrix"  # For vector operations
+  
+  # Note: Vector similarity engines like annoy-rb can be added optionally
+  # Users can add to their Gemfile: gem 'annoy-rb', require: false
 end
