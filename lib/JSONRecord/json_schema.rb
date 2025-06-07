@@ -7,7 +7,17 @@ module JSONRecord
       def column(name , type=String)
         # Ensure the table entry exists before pushing
         COLUMN_ATTRIBUTES[table_name] ||= []
-        COLUMN_ATTRIBUTES[table_name].push [name.to_s,type]
+        
+        # Always ensure 'id' is the first column if not already defined
+        existing_columns = COLUMN_ATTRIBUTES[table_name].map { |col| col[0] }
+        unless existing_columns.include?('id')
+          COLUMN_ATTRIBUTES[table_name].unshift(['id', Integer])
+        end
+        
+        # Add the requested column if not already exists
+        unless existing_columns.include?(name.to_s)
+          COLUMN_ATTRIBUTES[table_name].push [name.to_s, type]
+        end
         
         # Define explicit accessor methods (German precision engineering)
         field_name = name.to_s
