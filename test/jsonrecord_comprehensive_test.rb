@@ -6,6 +6,9 @@ describe JSONRecord do
     FileUtils.rm_rf(File.join(Dir.pwd, 'test_data'))
     FileUtils.rm_rf(File.join(Dir.pwd, 'data'))
     
+    # CRITICAL: Reset storage adapter singleton to use clean database
+    JSONRecord::Base.class_variable_set(:@@document_storage, nil) if JSONRecord::Base.class_variable_defined?(:@@document_storage)
+    
     # Define test model
     @user_class = Class.new(JSONRecord::Base) do
       def self.name
