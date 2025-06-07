@@ -24,7 +24,6 @@ Gem::Specification.new do |gem|
   # Core dependencies for JSONRecord v2.0 - Production ready
   gem.add_dependency "activesupport", ">= 6.0", "< 8.0"
   gem.add_dependency "activemodel", ">= 6.0", "< 8.0"
-  gem.add_dependency "msgpack", "~> 1.0"       # Binary serialization
   gem.add_dependency "matrix"                   # Vector operations
   
   # Storage backend (RocksDB is primary, FileAdapter fallback)
@@ -61,7 +60,7 @@ Gem::Specification.new do |gem|
     
     ⚡ Features:
     • RocksDB backend for 10-100x performance 
-    • Vector similarity search (Simple/Annoy/Faiss engines)
+    • Vector similarity search (Simple/Annoy/Fast engines)
     • Complete ActiveRecord adapter for Rails integration
     • Drop-in replacement for SQLite with vector capabilities
     

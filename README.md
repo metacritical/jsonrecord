@@ -9,8 +9,8 @@ JSONRecord is a modern, fast document storage library that works as both a **sta
 ## ⚡ Key Features
 
 - **🏗️ ActiveRecord Adapter**: Drop-in replacement for SQLite with `database.yml` configuration
-- **🚀 RocksDB Backend**: Lightning-fast binary storage with MessagePack serialization
-- **🔍 Vector Search**: Built-in similarity search with Simple/Annoy/FAISS engines
+- **🚀 RocksDB Backend**: Lightning-fast binary storage with direct JSON serialization
+- **🔍 Vector Search**: Built-in similarity search with Simple/Annoy/Fast engines
 - **📊 Rails Integration**: Standard migrations, models, and query interface
 - **⚖️ Smart Storage**: Automatic Rails detection with XDG-compliant paths
 
@@ -30,7 +30,7 @@ development:
 production:
   adapter: jsonrecord
   database: db/production_jsonrecord
-  vector_engine: faiss
+  vector_engine: fast
 ```
 
 Use standard Rails models with vector extensions:
@@ -182,7 +182,7 @@ Follows XDG Base Directory specification:
 ```ruby
 JSONRecord.configure do |config|
   config.database_path = '/var/lib/myapp/database.rocksdb'
-  config.vector_engine = :faiss  # or :simple, :annoy
+  config.vector_engine = :fast  # or :simple, :annoy
   config.rocksdb_options = {
     write_buffer_size: 64.megabytes,
     max_open_files: 1000,
@@ -235,7 +235,7 @@ JSONRecord delivers **enterprise-grade performance**:
 - **🚀 10-100x faster** than JSON file storage
 - **📈 Horizontal scaling** with RocksDB's proven architecture  
 - **🔍 Sub-millisecond queries** with automatic indexing
-- **💾 Efficient storage** with MessagePack compression
+- **💾 Efficient storage** with direct JSON serialization
 
 ## 🧪 Testing
 

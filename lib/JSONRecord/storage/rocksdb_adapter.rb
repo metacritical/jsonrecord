@@ -1,5 +1,5 @@
 require 'rocksdb'
-require 'msgpack'  # Optimal binary serialization for fast CRUD operations
+require 'json'  # Direct JSON storage - faster than MessagePack overhead
 
 module JSONRecord
   module Storage
@@ -14,15 +14,15 @@ module JSONRecord
       end
       
       # Document operations (the main pipes)
-      # Document operations (optimized binary storage)
+      # Document operations (optimized direct storage)
       def put_document(table_name, id, document)
         key = document_key(table_name, id)
-        packed_data = MessagePack.pack(document)
+        json_data = document.to_json  # Direct JSON - no MessagePack overhead
         
-        puts "DEBUG: Storing key='#{key}' size=#{packed_data.size} bytes" if ENV['DEBUG']
+        puts "DEBUG: Storing key='#{key}' size=#{json_data.size} bytes" if ENV['DEBUG']
         
-        # Store as efficient binary blob (RocksDB gem has weird behavior but get() compensates)
-        @db_handle.put(key, packed_data)
+        # Store JSON directly in RocksDB (no serialization layer)
+        @db_handle.put(key, json_data)
         
         # Update secondary indexes for fast queries
         update_indexes(table_name, id, document)
@@ -32,10 +32,10 @@ module JSONRecord
       
       def get_document(table_name, id)
         key = document_key(table_name, id)
-        packed_data = @db_handle.get(key)
+        json_data = @db_handle.get(key)
         
-        return nil unless packed_data
-        MessagePack.unpack(packed_data)
+        return nil unless json_data
+        JSON.parse(json_data)  # Direct JSON parsing
       end
       
       def delete_document(table_name, id)
@@ -68,7 +68,7 @@ module JSONRecord
         existing_ids = get_index_ids(index_key)
         existing_ids << document_id unless existing_ids.include?(document_id)
         
-        @db_handle.put(index_key, MessagePack.pack(existing_ids))
+        @db_handle.put(index_key, existing_ids.to_json)  # Direct JSON for indexes
       end
       
       def remove_from_index(table_name, field_name, value, document_id)
@@ -79,7 +79,7 @@ module JSONRecord
         if existing_ids.empty?
           @db_handle.delete(index_key)
         else
-          @db_handle.put(index_key, MessagePack.pack(existing_ids))
+          @db_handle.put(index_key, existing_ids.to_json)  # Direct JSON for indexes
         end
       end
       
@@ -127,17 +127,17 @@ module JSONRecord
       end
       
       def list_tables
-        # Extract unique table names from documents
+        # Extract unique table names from document keys
         tables = Set.new
         
         @db_handle.each do |stored_key, stored_value|
-          begin
-            document = MessagePack.unpack(stored_key)
-            if document.is_a?(Hash) && document['_table']
-              tables << document['_table']
+          # Look for document keys: "doc:table_name:id"
+          if stored_key.start_with?("doc:")
+            parts = stored_key.split(":")
+            if parts.length >= 3
+              table_name = parts[1]
+              tables << table_name
             end
-          rescue MessagePack::MalformedFormatError, MessagePack::UnexpectedTypeError
-            next
           end
         end
         
@@ -202,14 +202,14 @@ module JSONRecord
       
       def get_metadata(table_name, key)
         metadata_key = "meta:#{table_name}:#{key}"
-        packed_data = @db_handle.get(metadata_key)
-        return nil unless packed_data
-        MessagePack.unpack(packed_data)
+        json_data = @db_handle.get(metadata_key)
+        return nil unless json_data
+        JSON.parse(json_data)  # Direct JSON parsing
       end
       
       def set_metadata(table_name, key, value)
         metadata_key = "meta:#{table_name}:#{key}"
-        @db_handle.put(metadata_key, MessagePack.pack(value))
+        @db_handle.put(metadata_key, value.to_json)  # Direct JSON storage
       end
       
       def delete_metadata(table_name)
@@ -244,32 +244,30 @@ module JSONRecord
       end
       
       def get_index_ids(index_key)
-        packed_data = @db_handle.get(index_key)
-        return [] unless packed_data
-        MessagePack.unpack(packed_data)  # Parse MessagePack index data
+        json_data = @db_handle.get(index_key)
+        return [] unless json_data
+        JSON.parse(json_data)  # Direct JSON parsing for indexes
       end
       
       def all_documents(table_name)
         documents = []
         
-        # CRITICAL FIX: RocksDB Ruby gem has BIZARRE behavior:
-        # - put(key, value) stores VALUE as KEY and stores EMPTY as value
-        # - So all KEYS are actually MessagePack document data
-        # - All VALUES are empty/nil
+        # Iterate through all documents with table prefix
         @db_handle.each do |stored_key, stored_value|
-          # stored_key = MessagePack document data (what should have been value)
-          # stored_value = empty/nil (gem doesn't store original key)
-          begin
-            # Try to parse key as MessagePack document
-            document = MessagePack.unpack(stored_key)
-            
-            # Filter by table name using _table field
-            if document.is_a?(Hash) && document['id'] && document['_table'] == table_name
-              documents << document
+          # Check if this is a document key for our table
+          if stored_key.start_with?("doc:#{table_name}:")
+            begin
+              # Parse JSON directly
+              document = JSON.parse(stored_value)
+              
+              # Verify it's the right table and has ID
+              if document.is_a?(Hash) && document['id']
+                documents << document
+              end
+            rescue JSON::ParserError
+              # Skip non-JSON data (could be indexes or metadata)
+              next
             end
-          rescue MessagePack::MalformedFormatError, MessagePack::UnexpectedTypeError
-            # Skip non-document keys (could be indexes)
-            next
           end
         end
         

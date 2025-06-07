@@ -5,7 +5,7 @@ module JSONRecord
     
     def initialize
       @database_path = default_database_path
-      @vector_engine = :simple  # Options: :simple, :annoy, :faiss
+      @vector_engine = :simple  # Options: :simple, :annoy, :fast
       @vector_dimensions = {}
       @rocksdb_options = default_rocksdb_options
       @enable_compression = true

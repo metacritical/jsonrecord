@@ -21,8 +21,8 @@ module JSONRecord
           add_vector_simple(collection_name, document_id, vector, metadata)
         when :annoy
           add_vector_annoy(collection_name, document_id, vector, metadata)
-        when :faiss
-          add_vector_faiss(collection_name, document_id, vector, metadata)
+        when :fast
+          add_vector_fast(collection_name, document_id, vector, metadata)
         else
           raise "Unknown vector engine: #{@engine}"
         end
@@ -36,8 +36,8 @@ module JSONRecord
           remove_vector_simple(collection_name, document_id)
         when :annoy
           remove_vector_annoy(collection_name, document_id)  
-        when :faiss
-          remove_vector_faiss(collection_name, document_id)
+        when :fast
+          remove_vector_fast(collection_name, document_id)
         end
       end
       
@@ -52,8 +52,8 @@ module JSONRecord
           search_similar_simple(collection_name, query_vector, limit, threshold)
         when :annoy
           search_similar_annoy(collection_name, query_vector, limit, threshold)
-        when :faiss
-          search_similar_faiss(collection_name, query_vector, limit, threshold)
+        when :fast
+          search_similar_fast(collection_name, query_vector, limit, threshold)
         else
           []
         end
@@ -66,7 +66,7 @@ module JSONRecord
         when :annoy
           # Annoy doesn't have size method - count metadata instead
           @vector_storage[collection_name]&.size || 0
-        when :faiss
+        when :fast
           @indexes[collection_name]&.dig(:vectors)&.size || 0
         else
           0
@@ -91,8 +91,8 @@ module JSONRecord
           # No initialization needed for simple Ruby implementation
         when :annoy
           require_annoy
-        when :faiss
-          require_faiss
+        when :fast
+          require_fast
         end
       end
       
@@ -105,8 +105,8 @@ module JSONRecord
           @indexes[collection_name] = true  # Mark collection as initialized
         when :annoy
           initialize_annoy_index(collection_name)
-        when :faiss
-          initialize_faiss_index(collection_name)
+        when :fast
+          initialize_fast_index(collection_name)
         end
       end
       
@@ -264,19 +264,19 @@ module JSONRecord
         end
       end
       
-      # FAISS implementation (Facebook's approach - best performance)
-      def require_faiss
-        # Use Ruby-native FAISS-style implementation instead of external bindings
-        # This provides FAISS-like performance with pure Ruby
+      # Fast Ruby implementation (Optimized pure Ruby - best for small to medium datasets)
+      def require_fast
+        # Use optimized Ruby math with matrix operations
+        # This provides good performance for datasets < 100k vectors
         require 'matrix'
       end
       
-      def initialize_faiss_index(collection_name)
-        # FAISS-style index using optimized Ruby implementation
+      def initialize_fast_index(collection_name)
+        # Optimized index using Ruby with batch operations
         dimensions = JSONRecord.configuration.vector_dimensions[collection_name] || 384
         
         @indexes[collection_name] = {
-          type: :faiss_flat,  # Start with FlatIP equivalent
+          type: :fast_ruby,   # Honest naming - optimized Ruby, not Facebook FAISS
           dimensions: dimensions,
           vectors: [],        # Store normalized vectors for fast cosine similarity
           doc_ids: [],        # Parallel array of document IDs
@@ -287,10 +287,10 @@ module JSONRecord
         @vector_storage[collection_name] ||= {}
       end
       
-      def add_vector_faiss(collection_name, document_id, vector, metadata)
+      def add_vector_fast(collection_name, document_id, vector, metadata)
         index_data = @indexes[collection_name]
         
-        # Normalize vector for cosine similarity (FAISS-style)
+        # Normalize vector for cosine similarity (optimized approach)
         normalized_vector = normalize_vector(vector)
         
         # Add to index
@@ -304,7 +304,7 @@ module JSONRecord
         index_data[:index_built] = false
       end
       
-      def remove_vector_faiss(collection_name, document_id)
+      def remove_vector_fast(collection_name, document_id)
         index_data = @indexes[collection_name]
         doc_id_str = document_id.to_s
         
@@ -319,14 +319,14 @@ module JSONRecord
         @vector_storage[collection_name]&.delete(doc_id_str)
       end
       
-      def search_similar_faiss(collection_name, query_vector, limit, threshold)
+      def search_similar_fast(collection_name, query_vector, limit, threshold)
         index_data = @indexes[collection_name]
         return [] if index_data[:vectors].empty?
         
         # Normalize query vector
         normalized_query = normalize_vector(query_vector)
         
-        # FAISS-style batch similarity computation
+        # Optimized batch similarity computation
         similarities = compute_batch_similarities(normalized_query, index_data[:vectors])
         
         # Create results with similarity scores
@@ -350,7 +350,7 @@ module JSONRecord
       
       private
       
-      # FAISS-style optimized vector operations
+      # Optimized vector operations for fast Ruby engine
       def normalize_vector(vector)
         vec_array = vector.is_a?(Array) ? vector : vector.to_a
         magnitude = Math.sqrt(vec_array.sum { |x| x * x })
@@ -360,7 +360,7 @@ module JSONRecord
       end
       
       def compute_batch_similarities(query_vector, stored_vectors)
-        # Optimized batch computation (similar to FAISS IndexFlatIP)
+        # Optimized batch computation for fast similarity search
         stored_vectors.map do |stored_vector|
           # Dot product of normalized vectors = cosine similarity
           query_vector.zip(stored_vector).sum { |q, s| q * s }
