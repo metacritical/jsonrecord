@@ -16,10 +16,34 @@ module JSONRecord
     
     def default_database_path
       if defined?(Rails) && Rails.respond_to?(:root)
-        Rails.root.join('db', 'jsonrecord.rocksdb')
+        # Rails applications: use db/ directory (like SQLite)
+        Rails.root.join('db', 'jsonrecord.rocksdb').to_s
+      elsif development_environment?
+        # Development: use local data/ directory (git-ignored)
+        File.join(Dir.pwd, 'data', 'jsonrecord.rocksdb')
+      elsif ENV['XDG_DATA_HOME']
+        # XDG Base Directory specification (Linux/Unix)
+        File.join(ENV['XDG_DATA_HOME'], 'jsonrecord', 'jsonrecord.rocksdb')
+      elsif ENV['HOME']
+        # Fallback: ~/.local/share/jsonrecord (XDG-compliant)
+        File.join(ENV['HOME'], '.local', 'share', 'jsonrecord', 'jsonrecord.rocksdb')
       else
+        # Last resort: current directory
         File.join(Dir.pwd, 'data', 'jsonrecord.rocksdb')
       end
+    end
+    
+    def development_environment?
+      # Heuristics to detect development environment
+      return true if Dir.exist?('.git')                    # Git repository
+      return true if File.exist?('Gemfile')                # Ruby project
+      return true if File.exist?('package.json')           # Node project
+      return true if Dir.pwd.include?('/Development/')     # Development directory
+      return true if Dir.pwd.include?('/dev/')             # Dev directory
+      return true if ENV['RAILS_ENV'] == 'development'     # Rails development
+      return true if ENV['NODE_ENV'] == 'development'      # Node development
+      
+      false
     end
     
     def default_rocksdb_options
