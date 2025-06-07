@@ -32,8 +32,8 @@ module JSONRecord
           self[field_name] = value
         end
         
-        # Return the column name symbol (more appropriate than :age=)
-        name.to_sym
+        # Return self (the class) for proper Ruby class definition behavior
+        self
       end
     end
   end
