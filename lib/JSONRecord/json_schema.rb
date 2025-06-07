@@ -31,6 +31,9 @@ module JSONRecord
         define_method("#{field_name}=") do |value|
           self[field_name] = value
         end
+        
+        # Return the column name symbol (more appropriate than :age=)
+        name.to_sym
       end
     end
   end
