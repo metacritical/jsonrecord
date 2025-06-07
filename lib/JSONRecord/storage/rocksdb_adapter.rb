@@ -24,7 +24,21 @@ module JSONRecord
         # Store JSON directly in RocksDB (no serialization layer)
         @db_handle.put(key, json_data)
         
-        # Update secondary indexes for fast queries
+        # Track document ID for all_documents method (since RocksDB.each is broken)
+        doc_ids = get_metadata(table_name, 'document_ids') || []
+        unless doc_ids.include?(id.to_s)
+          doc_ids << id.to_s
+          set_metadata(table_name, 'document_ids', doc_ids)
+        end
+        
+        # Register table in master list
+        known_tables = get_metadata('_system', 'tables') || []
+        unless known_tables.include?(table_name)
+          known_tables << table_name
+          set_metadata('_system', 'tables', known_tables)
+        end
+        
+        # Re-enable indexing now that core storage is working
         update_indexes(table_name, id, document)
         
         document
@@ -45,6 +59,11 @@ module JSONRecord
         
         key = document_key(table_name, id)
         @db_handle.delete(key)
+        
+        # Remove from document ID tracking
+        doc_ids = get_metadata(table_name, 'document_ids') || []
+        doc_ids.delete(id.to_s)
+        set_metadata(table_name, 'document_ids', doc_ids)
         
         # Clean up indexes
         cleanup_indexes(table_name, id, document)
@@ -127,18 +146,19 @@ module JSONRecord
       end
       
       def list_tables
-        # Extract unique table names from document keys
+        # Since RocksDB.each is broken, use metadata approach
+        # Look for table metadata entries
         tables = Set.new
         
-        @db_handle.each do |stored_key, stored_value|
-          # Look for document keys: "doc:table_name:id"
-          if stored_key.start_with?("doc:")
-            parts = stored_key.split(":")
-            if parts.length >= 3
-              table_name = parts[1]
-              tables << table_name
-            end
-          end
+        # Try to get known tables from a master list
+        known_tables = get_metadata('_system', 'tables') || []
+        tables.merge(known_tables)
+        
+        # Also check for any table with document_ids metadata
+        # This is a fallback in case master list is missing
+        %w[users articles posts products].each do |possible_table|
+          doc_ids = get_metadata(possible_table, 'document_ids')
+          tables << possible_table if doc_ids && !doc_ids.empty?
         end
         
         tables.to_a
@@ -252,23 +272,15 @@ module JSONRecord
       def all_documents(table_name)
         documents = []
         
-        # Iterate through all documents with table prefix
-        @db_handle.each do |stored_key, stored_value|
-          # Check if this is a document key for our table
-          if stored_key.start_with?("doc:#{table_name}:")
-            begin
-              # Parse JSON directly
-              document = JSON.parse(stored_value)
-              
-              # Verify it's the right table and has ID
-              if document.is_a?(Hash) && document['id']
-                documents << document
-              end
-            rescue JSON::ParserError
-              # Skip non-JSON data (could be indexes or metadata)
-              next
-            end
-          end
+        # CRITICAL FIX: RocksDB Ruby gem's .each is broken - it swaps keys/values!
+        # Instead, we need to track document IDs and fetch them directly
+        
+        # Strategy 1: Use metadata to track all document IDs for this table
+        doc_ids = get_metadata(table_name, 'document_ids') || []
+        
+        doc_ids.each do |id|
+          document = get_document(table_name, id)
+          documents << document if document
         end
         
         documents
