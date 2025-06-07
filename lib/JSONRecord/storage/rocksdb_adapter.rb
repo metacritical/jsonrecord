@@ -163,8 +163,8 @@ module JSONRecord
             # Try to parse key as MessagePack document
             document = MessagePack.unpack(stored_key)
             
-            # Verify this document belongs to our table
-            if document.is_a?(Hash) && document['id']
+            # Filter by table name using _table field
+            if document.is_a?(Hash) && document['id'] && document['_table'] == table_name
               documents << document
             end
           rescue MessagePack::MalformedFormatError, MessagePack::UnexpectedTypeError
@@ -173,8 +173,6 @@ module JSONRecord
           end
         end
         
-        # Filter by table name if needed (documents should have consistent structure)
-        # For now, return all valid documents since we can't distinguish by table
         documents
       end
       

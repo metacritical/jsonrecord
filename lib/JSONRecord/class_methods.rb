@@ -100,6 +100,19 @@ module JSONRecord
       where(conditions).exists?
     end
   end
+  
+  # QueryBuilder method delegation (German precision query routing)
+  def limit(count)
+    QueryBuilder.new(self).limit(count)
+  end
+  
+  def offset(count)
+    QueryBuilder.new(self).offset(count)
+  end
+  
+  def order(field_or_hash)
+    QueryBuilder.new(self).order(field_or_hash)
+  end
 
   # Legacy compatibility - maintain old constants for migration
   def ensure_legacy_compatibility

@@ -188,6 +188,9 @@ module JSONRecord
       document_data["updated_at"] = now
       document_data["created_at"] ||= now
       
+      # CRITICAL: Add table_name for filtering in all_documents
+      document_data["_table"] = self.class.table_name
+      
       document_data
     end
     
