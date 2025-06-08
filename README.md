@@ -361,7 +361,7 @@ After checking out the repo:
 
 ```bash
 bundle install
-ruby test_class_return.rb  # Test the latest fixes
+ruby test/test_class_return.rb  # Test the latest fixes
 ```
 
 ## 📖 Documentation
